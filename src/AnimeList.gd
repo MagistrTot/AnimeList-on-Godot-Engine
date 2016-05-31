@@ -10,6 +10,7 @@ var onview = true
 var notstarted = true
 var sorting = false
 var sort_local = false
+var add_word = ""
 var last_file = "" #последний открытый файл
 var select_item = -1 #текущий выбранный элемент
 var old_item = -1
@@ -37,6 +38,8 @@ func _ready():
 		sorting = config.get_value("main", "sort")
 		sort_local = config.get_value("main", "local")
 		last_file = config.get_value("main", "path")
+		add_word = config.get_value("main", "word")
+		get_node("SettingDialog/word").set_text(add_word)
 		if(sorting):
 			get_node("config/sort_local").show()
 		else:
@@ -60,6 +63,8 @@ func _ready():
 	get_node("FileMenu").get_popup().add_item("Сохранить",3)
 	get_node("FileMenu").get_popup().add_item("Сохранить как...",4)
 	get_node("FileMenu").get_popup().add_separator()
+	get_node("FileMenu").get_popup().add_item("Параметры",5)
+	get_node("FileMenu").get_popup().add_separator()
 	get_node("FileMenu").get_popup().add_item("Выйти",6)
 	#соединяем сигнал с функцией, обратить внимание на то, что сигнал "item_pressed" имеет возвращаемый параметр
 	#это стандартный сигнал popupMenu item_pressed ( int ID)
@@ -74,6 +79,8 @@ func file_item_select(ID): #Выбор элемента меню
 	if(ID == 6): #выход
 		save_conf()
 		get_tree().quit()
+	elif(ID == 5): #настройки программы
+		get_node("SettingDialog").show()
 	elif(ID == 0): #новый файл
 		file_path = ""
 		clear_list()
@@ -192,7 +199,7 @@ func create_list(): #создание нового листа элементов
 	else:
 		get_node("ItemList").add_item("Нет Элементов для показа")
 		
-	get_node("Label").set_text(str("Количество серий: ", items.size(), " | Количество показанных серий: ", current_item.size()))
+	get_node("Label").set_text(str("Количество сериалов: ", items.size(), " | Количество показанных сериалов: ", current_item.size()))
 
 func add_item(i): #добавление элемента в список просмотра и цветовая идентификация элементов
 	current_item.push_back(items[i]["ID"])
@@ -233,9 +240,14 @@ func add_item(i): #добавление элемента в список про�
 			if(transferDate[s]["series"] == items[i]["views"] +1):
 				date2.set_equal(transferDate[s]["date"])
 				break
-				
-		if(date.less(currentDay) && date2.more(currentDay)):
+		var date3 = classDate.new()
+		date3.set_equal(date2)
+		date3.offset_day(7)
+						
+		if(date.compare(currentDay) || (date.less(currentDay) && date2.more(currentDay))):
 			color = Color(0,0.2,0) #зеленый если нет серий для просмотра
+		elif(date.more(currentDay)):
+			color = Color(1,0,1)
 		else:
 			color = Color(0.2,0,0) #красный если есть серии для просмотра
 		get_node("ItemList").set_item_custom_bg_color(get_node("ItemList").get_item_count()-1, color) #изменение цвета элемента
@@ -271,6 +283,7 @@ func save_conf(): #сохранение файла конфигурации
 	config.set_value("main", "sort", sorting)
 	config.set_value("main", "local", sort_local)
 	config.set_value("main", "path", last_file)
+	config.set_value("main", "word", add_word)
 	config.save("res://animelist.cfg")
 
 func _on_EditDialog_confirmed(): #сохранение элемента при его редактировании
@@ -304,10 +317,10 @@ func _on_edit_pressed(): #редактирование элемента
 		
 #копирование названия в буфер обмена "название серия"
 func _on_copy_orig_pressed():
-	OS.set_clipboard(str(items[current_item[select_item]]["name_orig"], " ", items[current_item[select_item]]["views"] + 1))
+	OS.set_clipboard(str(items[current_item[select_item]]["name_orig"], " ", items[current_item[select_item]]["views"] + 1, " ", add_word))
 
 func _on_copy_local_pressed():
-	OS.set_clipboard(str(items[current_item[select_item]]["name_local"], " ", items[current_item[select_item]]["views"] + 1))
+	OS.set_clipboard(str(items[current_item[select_item]]["name_local"], " ", items[current_item[select_item]]["views"] + 1, " ", add_word))
 
 #config элементы
 func _on_transfer_pressed(): #даты перенесенных серий
@@ -361,3 +374,19 @@ func _on_help_pressed(): #справка
 		get_node("HelpDialog").hide()
 	else:
 		get_node("HelpDialog").show()
+
+func _on_item_delete_pressed():
+	get_node("DeleteDialog/name_orig").set_text(items[current_item[select_item]]["name_orig"])
+	get_node("DeleteDialog/name_local").set_text(items[current_item[select_item]]["name_local"])
+	get_node("DeleteDialog").show()
+
+func _on_DeleteDialog_confirmed(): #удаление элемента
+	count_item = count_item - 1
+	items.remove(current_item[select_item])
+	select_item = -1
+	for i in range(count_item):
+		items[i]["ID"] = i
+	create_list()
+
+func _on_SettingDialog_confirmed(): #изменение настроек
+	add_word = get_node("SettingDialog/word").get_text()
