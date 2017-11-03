@@ -5,7 +5,7 @@
 #get_weekday() - возвращает день недели строкой вида "Понедельник"
 #get_text_num() - возвращает дату строкой вида "1/1/2016"
 #get_max_day() - возвращает максимальное количество дней в месяце (учитывается и високосный год)
-#set_date_from_text(separator, data, sequence) - устанавливает дату из строки data, с разделителем separator (по умолчанию "/"), 
+#set_date_from_text(separator, data, sequence) - устанавливает дату из строки data, с разделителем separator (по умолчанию "/"),
 # вида sequence (по умолчанию "dmy", или "mdy",  т е "день месяц год" или "месяц день год")
 #set_equal(data) - устанавливает дату равным data = classDate.new(), объявленным ранее в скрипте родителе
 #set_date(day,month,year) - устанавливает дату по входящим данным
@@ -174,7 +174,7 @@ func more(data = date):
 			return false
 	else:
 		return false
-	
+
 func less(data = date):
 	if(date["year"] < data.date["year"]):
 		return true

@@ -1,4 +1,4 @@
-#даилог для добавления/редактирования перенесенных релизов серий
+#диалог для добавления/редактирования перенесенных релизов серий
 extends ConfirmationDialog
 
 var classDate = preload("res://classDate.gd")
@@ -13,9 +13,9 @@ func _ready():
 	get_node("day").set_max(editDate.get_max_day())
 	for i in range(1,13):
 		get_node("month").add_item(months[i],i)
-	get_node("year").set_value(editDate.date["year"])
-	get_node("month").select(editDate.date["month"]-1)
-	get_node("day").set_value(editDate.date["day"])
+	get_node("year").set_value(OS.get_date().year)
+	get_node("month").select(OS.get_date().month-1)
+	get_node("day").set_value(OS.get_date().day)
 	refresh()
 
 func set_data(string):
